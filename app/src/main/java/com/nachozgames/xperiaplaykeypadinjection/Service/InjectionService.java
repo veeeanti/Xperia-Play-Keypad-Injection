@@ -51,6 +51,36 @@ public class InjectionService extends Service {
             keypadZeusWriter = new KeypadZeusWriter();
             keypadZeusWriter.start(detectedDevicePath);
             isRunning = true;
+            
+            // Automatically trigger close and open events to enable touchpad
+            try {
+                // Close event: switchEvent(0, 1), mscEvent(0x3, 1), flush()
+                keypadZeusWriter.switchEvent(0, 1);
+                keypadZeusWriter.mscEvent(0x3, 1);
+                keypadZeusWriter.flush();
+                
+                // Small delay between close and open
+                Thread.sleep(100);
+                
+                // Open event: switchEvent(0, 0), mscEvent(0x3, 0), flush()
+                keypadZeusWriter.switchEvent(0, 0);
+                keypadZeusWriter.mscEvent(0x3, 0);
+                keypadZeusWriter.flush();
+                
+                Log.i(TAG, "Touchpad enabled successfully!");
+                Toasts.show("Touchpad enabled automatically");
+                
+                // Close the writer and stop the service - touchpad hardware stays enabled
+                keypadZeusWriter.close();
+                Log.i(TAG, "KeypadZeusWriter closed, stopping service");
+                stopSelf();
+                return START_NOT_STICKY;
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to enable touchpad: " + e.getMessage());
+            } catch (InterruptedException e) {
+                Log.e(TAG, "Interrupted during touchpad enable: " + e.getMessage());
+            }
+            
             Log.i(TAG, "Injection service started successfully");
         } catch (Exception e) {
             e.printStackTrace();
