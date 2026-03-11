@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
+import com.nachozgames.xperiaplaykeypadinjection.Injection.DeviceDetector;
 import com.nachozgames.xperiaplaykeypadinjection.Injection.KeypadZeusWriter;
 import com.nachozgames.xperiaplaykeypadinjection.R;
 import com.nachozgames.xperiaplaykeypadinjection.Util.Toasts;
@@ -14,7 +16,10 @@ import java.io.IOException;
 
 public class MainActivity extends Activity
 {
+    private static final String TAG = "XperiaPlay";
+
     private KeypadZeusWriter keypadZeusWriter;
+    private String detectedDevicePath;
 
     @Override protected void onCreate(Bundle savedInstanceState)
     {
@@ -24,14 +29,31 @@ public class MainActivity extends Activity
         Toasts.init(this);
         keypadZeusWriter = new KeypadZeusWriter();
 
+        // --- Dynamic device detection (replaces hardcoded /dev/input/event5) ---
+        detectedDevicePath = DeviceDetector.findKeypadZeus();
+
+        if (detectedDevicePath == null)
+        {
+            Log.e(TAG, "keypad-zeus device not found on this device!");
+            Toasts.show("ERROR: keypad-zeus not found in /dev/input/");
+            disableButtons();
+            return;
+        }
+
+        Log.i(TAG, "Detected keypad-zeus at: " + detectedDevicePath);
+        Toasts.show("keypad-zeus detected: " + detectedDevicePath);
+
         try
         {
-            keypadZeusWriter.start("/dev/input/event5");
+            keypadZeusWriter.start(detectedDevicePath);
         }
         catch (Exception e)
         {
             e.printStackTrace();
-            Log.e("XperiaPlay", "Failed to start writer: " + e.getMessage());
+            Log.e(TAG, "Failed to start writer on " + detectedDevicePath
+                       + ": " + e.getMessage());
+            Toasts.show("Failed to open " + detectedDevicePath);
+            disableButtons();
         }
     }
 
@@ -73,6 +95,12 @@ public class MainActivity extends Activity
             throw new RuntimeException(e);
         }
     }
+
+    private void disableButtons()
+    {
+        Button btnOpen = findViewById(R.id.btn_sync);
+        Button btnClose = findViewById(R.id.btn_sync2);
+        if (btnOpen != null) btnOpen.setEnabled(false);
+        if (btnClose != null) btnClose.setEnabled(false);
+    }
 }
-
-
