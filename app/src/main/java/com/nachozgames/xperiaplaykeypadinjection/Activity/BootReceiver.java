@@ -5,17 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.nachozgames.xperiaplaykeypadinjection.Service.InjectionService;
+
 public class BootReceiver extends BroadcastReceiver {
     private static final String TAG = "BootReceiver";
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            Log.i(TAG, "Device boot completed, launching application...");
+            Log.i(TAG, "Device boot completed, launching injection service...");
             
-            Intent launchIntent = new Intent(context, MainActivity.class);
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(launchIntent);
+            Intent serviceIntent = new Intent(context, InjectionService.class);
+            context.startService(serviceIntent);
         }
     }
 }

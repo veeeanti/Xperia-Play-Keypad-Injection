@@ -35,5 +35,9 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+
+        <service android:name="com.nachozgames.xperiaplaykeypadinjection.Service.InjectionService"
+            android:enabled="true"
+            android:exported="false"/>
     </application>
 </manifest>
